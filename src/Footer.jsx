@@ -22,7 +22,7 @@ export default function Footer() {
         {/* LEFT SIDE: Text Info */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontFamily: 'system-ui, sans-serif' }}>
-            Managed & Handled by <strong style={{ color: '#ffffff' }}>Duniyape Technologies</strong>
+            Managed &amp; Handled by <strong style={{ color: '#ffffff' }}>Duniyape Technologies</strong>
           </p>
           <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
             © {new Date().getFullYear()} Krishna Dham. All Rights Reserved.
