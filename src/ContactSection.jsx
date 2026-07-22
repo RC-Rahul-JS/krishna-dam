@@ -4,26 +4,26 @@ const contacts = [
   {
     id: 'phone',
     label: 'Call Us',
-    value: '+91 98765 43210',
+    value: '+91 94794 44536',
     sub: 'Mon – Sat, 9 AM – 7 PM',
-    href: 'tel:+919876543210',
+    href: 'tel:+919479444536',
     action: 'Call Now',
   },
   {
-    id: 'address',
-    label: 'Site Address',
-    value: 'Krishna Dham Colony',
-    sub: 'Near Main Highway, City District, State – 123456',
-    href: 'https://maps.google.com',
-    action: 'Get Directions',
+    id: 'whatsapp',
+    label: 'WhatsApp',
+    value: '+91 94794 44536',
+    sub: 'Chat with us anytime',
+    href: 'https://wa.me/919479444536',
+    action: 'Message Us',
   },
   {
-    id: 'email',
-    label: 'Email Us',
-    value: 'info@krishnadham.com',
-    sub: 'We reply within 24 hours',
-    href: 'mailto:info@krishnadham.com',
-    action: 'Send Email',
+    id: 'address',
+    label: 'Site Location',
+    value: 'Krishna Dham Colony',
+    sub: 'Kolar Road, Bhopal',
+    href: 'https://maps.app.goo.gl/RELUenTsRD5pq7tR7?g_st=aw',
+    action: 'Get Directions',
   },
 ];
 
@@ -120,7 +120,7 @@ export default function ContactSection() {
           <React.Fragment key={c.id}>
             <a
               href={c.href}
-              target={c.id === 'address' ? '_blank' : undefined}
+              target={c.id === 'address' || c.id === 'whatsapp' ? '_blank' : undefined}
               rel="noopener noreferrer"
               className={isVisible ? `ct-fadein ct-delay-${i}` : 'ct-hidden'}
               onMouseEnter={() => setHovered(c.id)}

@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    fs: {
+      allow: ['..', '../../plot/krishnadham'],
+    },
     proxy: {
       '/proxy-image': {
         target: 'https://c2c-files-bucket.s3.eu-north-1.amazonaws.com',
