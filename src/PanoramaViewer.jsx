@@ -83,10 +83,48 @@ export default function PanoramaViewer({
   const [dragPos, setDragPos] = useState(null);         // {x,y} current drag position
   const [hovered, setHovered] = useState(null);
   const [loaded, setLoaded]   = useState(false);
+  const [loadError, setLoadError] = useState(null);
+
+  const [blobUrl, setBlobUrl] = useState(null);
 
   useEffect(() => {
     setLoaded(false);
+    setLoadError(null);
+    setBlobUrl(null);
+
+    if (!imagePath) return;
+
+    console.log(`[PanoramaViewer] Fetching 360 image: ${imagePath}`);
+
+    let objectUrl = null;
+    let cancelled = false;
+
+    // Fetch with no-cors fallback: try fetch() first to get a blob URL,
+    // which avoids Pannellum's internal XHR hitting the S3 CORS block.
+    fetch(imagePath, { mode: 'cors' })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then(blob => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        console.log(`[PanoramaViewer] Blob URL created for: ${imagePath}`);
+        setBlobUrl(objectUrl);
+      })
+      .catch(err => {
+        if (cancelled) return;
+        // If CORS fetch fails, fall back to direct URL (works if bucket allows it)
+        console.warn(`[PanoramaViewer] Blob fetch failed, trying direct URL: ${err}`);
+        setBlobUrl(imagePath);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [imagePath]);
+
 
   /* ── rAF position loop ── */
   const updatePositions = useCallback(() => {
@@ -183,25 +221,55 @@ export default function PanoramaViewer({
       onTouchEnd={syncView}
       onWheel={syncView}
     >
-      {/* Loading Overlay */}
-      {!loaded && (
+      {/* Loading Overlay — shown while fetching blob OR while Pannellum is initialising */}
+      {(!blobUrl || !loaded) && !loadError && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md transition-opacity duration-500">
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 border-4 border-white/20 border-t-indigo-500 rounded-full animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
-            <span className="mt-5 text-white/90 text-sm font-semibold tracking-[0.2em] uppercase drop-shadow-md">Loading View...</span>
+            <span className="mt-5 text-white/90 text-sm font-semibold tracking-[0.2em] uppercase drop-shadow-md">
+              {!blobUrl ? 'Fetching Image...' : 'Loading View...'}
+            </span>
           </div>
         </div>
       )}
 
-      <Pannellum
-        ref={panRef}
-        width="100%" height="100%"
-        image={imagePath}
-        pitch={initialPitch} yaw={initialYaw} hfov={initialHfov}
-        autoLoad showZoomCtrl={true}
-        onMouseup={syncView}
-        onLoad={() => setLoaded(true)}
-      />
+      {/* Error Overlay */}
+      {loadError && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 p-6 text-center">
+          <div className="flex flex-col items-center max-w-md bg-neutral-900/90 border border-red-500/40 rounded-2xl p-6 shadow-2xl backdrop-blur-lg">
+            <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-xl font-bold mb-3">!</div>
+            <h3 className="text-white text-base font-bold mb-1">Failed to Load 360° Panorama</h3>
+            <p className="text-neutral-400 text-xs mb-3">The image could not be fetched from storage.</p>
+            <p className="text-neutral-500 text-[11px] font-mono bg-black/50 p-2 rounded w-full break-all mb-4 text-left">{imagePath}</p>
+            <button 
+              onClick={() => { setLoadError(null); setLoaded(false); setBlobUrl(null); }}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-all active:scale-95"
+            >
+              Retry Loading
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Only mount Pannellum once blob URL is ready */}
+      {blobUrl && (
+        <Pannellum
+          ref={panRef}
+          width="100%" height="100%"
+          image={blobUrl}
+          pitch={initialPitch} yaw={initialYaw} hfov={initialHfov}
+          autoLoad showZoomCtrl={true}
+          onMouseup={syncView}
+          onLoad={() => {
+            console.log(`[PanoramaViewer] ✅ Successfully loaded 360 image: ${imagePath}`);
+            setLoaded(true);
+          }}
+          onError={(err) => {
+            console.error(`[PanoramaViewer Error] ❌ Failed to load 360 image from ${imagePath}:`, err);
+            setLoadError(err?.toString() || "Image load failed");
+          }}
+        />
+      )}
 
       {/* ── Arrow overlays ── */}
       {spots.map(({ x, y, screenRotation, hs, index }) => (

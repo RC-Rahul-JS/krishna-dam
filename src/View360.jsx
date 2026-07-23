@@ -34,12 +34,15 @@ export default function View360() {
         }
 
         let proxyUrl = remoteRes[img];
-        if (proxyUrl && proxyUrl.startsWith('https://c2c-files-bucket.s3.eu-north-1.amazonaws.com/estate/3d_file/')) {
+        // Only use local Vite dev server proxy in DEV mode. In PROD (Firebase), use full S3 URL.
+        if (import.meta.env.DEV && proxyUrl && proxyUrl.startsWith('https://c2c-files-bucket.s3.eu-north-1.amazonaws.com/estate/3d_file/')) {
           proxyUrl = proxyUrl.replace(
             'https://c2c-files-bucket.s3.eu-north-1.amazonaws.com/estate/3d_file/',
             '/proxy-image/'
           );
         }
+
+        console.log(`[View360] Image: ${img} -> URL: ${proxyUrl}`);
 
         return {
           name: img,
@@ -50,9 +53,10 @@ export default function View360() {
         };
       });
 
+      console.log(`[View360] Total 360 images parsed: ${parsedImages.length}`);
       setImages(parsedImages);
     } catch (e) { 
-      console.error(e); 
+      console.error("[View360 Error] Failed to fetch 360 images config:", e); 
     } finally { 
       setLoading(false); 
     }

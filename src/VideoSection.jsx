@@ -9,11 +9,11 @@ const images = [
   '/5.png',
   '/6.png',
   '/7.png',
-  '/20260708_191357_458.jpg.jpeg',
-  '/20260708_191502_510.jpg.jpeg',
-  '/20260708_191739_967.jpg.jpeg',
-  '/20260708_191942_302.jpg.jpeg',
-  '/20260708_192038_909.jpg.jpeg',
+  '/8.png',
+  '/9.png',
+  '/10.png',
+  '/11.png',
+  '/1.png',
 ];
 
 export default function VideoSection() {
